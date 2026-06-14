@@ -24,13 +24,14 @@ Interactive dashboard analyzing total and per-capita CO2 emissions by region usi
 
 ### Screenshots
 
-![Bar Chart](screenshots/Screenshot%202026-06-12%20152754.png)
-![Line Chart - Region](screenshots/02_line_region.png)
-![Line Chart - Value](screenshots/03_line_value.png)
-![Proportional Symbol Map](screenshots/04_proportional_map.png)
-![Choropleth Map](screenshots/05_choropleth_map.png)
-![Box Plot](screenshots/06_box_plot.png)
-![CO2 Dashboard](screenshots/07_dashboard.png)
+![Bar Chart](screenshots/Screenshot%202026-06-12%20152554.png)
+![Line Chart - Region](screenshots/Screenshot%202026-06-12%20152611.png)
+![Line Chart - Value](screenshots/Screenshot%202026-06-12%20152625.png)
+![Proportional Symbol Map](screenshots/Screenshot%202026-06-12%20152642.png)
+![Choropleth Map](screenshots/Screenshot%202026-06-12%20152705.png)
+![Box Plot](screenshots/Screenshot%202026-06-12%20152720.png)
+![CO2 Dashboard](screenshots/Screenshot%202026-06-12%20152739.png)
+
 
 ---
 
