@@ -1,70 +1,196 @@
-# CO2 Emissions & World Population — Tableau Dashboards
+/**
+ * ================================================
+ * HR Leave & Attendance Tracker — Apps Script
+ * ================================================
+ */
 
-Data visualization project exploring global CO2 emissions trends (World Bank data, 1960–2011) and world population distribution (Kaggle, 1970–2022) using Tableau Public.
+// ── CONFIGURATION (reads from Settings tab) ──
+const SETTINGS_SHEET  = "Settings";
+const DASHBOARD_SHEET = "DashBord";  // match your tab name exactly
+const EMAIL_CELL      = "B4";
+const SUBJECT_CELL    = "B5";
 
-## 🌍 Project 1: World CO2 Emissions Dashboard
+// ── MENU ─────────────────────────────────────
+/**
+ * Creates the HR Tools menu when the sheet opens
+ */
+function onOpen() {
+  SpreadsheetApp.getUi()
+    .createMenu("HR Tools")
+    .addItem("Send Report Now", "sendWeeklyReport")
+    .addSeparator()
+    .addItem("Install Weekly Auto-Trigger", "installWeeklyTrigger")
+    .addItem("Remove All Triggers", "removeTriggers")
+    .addSeparator()
+    .addItem("Auto-Reject Expired Requests", "autoRejectExpired")
+    .addToUi();
+}
 
-Interactive dashboard analyzing total and per-capita CO2 emissions by region using World Bank data.
+// ── SEND REPORT ───────────────────────────────
+/**
+ * Exports Dashboard as PDF and emails it.
+ * Reads email and subject from Settings tab.
+ */
+function sendWeeklyReport() {
+  const ss       = SpreadsheetApp.getActiveSpreadsheet();
+  const settings = ss.getSheetByName(SETTINGS_SHEET);
 
-**Live Dashboard:** [View on Tableau Public](https://public.tableau.com/app/profile/suhaj.ahmad/viz/Assignment_17812055706430/CO2EmissionsDashboard)
+  // Read config from Settings — never hardcoded
+  const recipientEmail = settings.getRange(EMAIL_CELL).getValue();
+  const emailSubject   = settings.getRange(SUBJECT_CELL).getValue();
 
-### Visualizations included:
-- **Bar Chart** — Total CO2 emissions by region
-- **Time Series Line Chart** — CO2 per capita trends by region (1960–2011)
-- **Time Series Line Chart** — CO2 per capita colored by value (Red-Black diverging scale)
-- **Proportional Symbol Map** — Total CO2 emissions by country
-- **Choropleth Map** — Total CO2 emissions by country
-- **Box Plot** — Distribution of CO2 per capita by region
+  if (!recipientEmail) {
+    SpreadsheetApp.getUi().alert(
+      "⚠️ No email found in Settings tab cell B3."
+    );
+    return;
+  }
 
-### Key Insights
-- North America, East Asia & Pacific, and Europe & Central Asia together account for the majority of global CO2 emissions
-- The United States is the single largest cumulative emitter (~244 billion kt), followed by China (~137 billion kt)
-- Per-capita emissions in the Middle East & North Africa grew the fastest, rising from 0.7 to 4.6 metric tons between 1960 and 2010
-- Sub-Saharan Africa has consistently had the lowest per-capita and total emissions across the entire period
+  // Generate PDF of Dashboard only
+  const pdfBlob = exportDashboardAsPdf(ss);
+  const dateStr = Utilities.formatDate(
+    new Date(), Session.getScriptTimeZone(), "yyyy-MM-dd"
+  );
 
-### Screenshots
+  // Send email
+  GmailApp.sendEmail(
+    recipientEmail,
+    emailSubject,
+    "",
+    {
+      htmlBody: buildEmailBody(dateStr),
+      attachments: [pdfBlob.setName(`HR_Report_${dateStr}.pdf`)],
+      name: "HR Reporting Bot"
+    }
+  );
 
-![Bar Chart](screenshots/Screenshot%202026-06-12%20152554.png)
-![Line Chart - Region](screenshots/Screenshot%202026-06-12%20152611.png)
-![Line Chart - Value](screenshots/Screenshot%202026-06-12%20152625.png)
-![Proportional Symbol Map](screenshots/Screenshot%202026-06-12%20152642.png)
-![Choropleth Map](screenshots/Screenshot%202026-06-12%20152705.png)
-![Box Plot](screenshots/Screenshot%202026-06-12%20152720.png)
-![CO2 Dashboard](screenshots/Screenshot%202026-06-12%20152739.png)
+  SpreadsheetApp.getActiveSpreadsheet().toast(
+    `✅ Report sent to ${recipientEmail}`, "Success", 5
+  );
+}
 
----
+// ── PDF EXPORT ────────────────────────────────
+/**
+ * Exports only the Dashboard tab as a PDF blob
+ */
+function exportDashboardAsPdf(ss) {
+  const dashboard = ss.getSheetByName(DASHBOARD_SHEET);
+  const ssId      = ss.getId();
+  const sheetId   = dashboard.getSheetId();
 
-## 🌐 Project 2: World Population Dashboard 2022
+  const url = `https://docs.google.com/spreadsheets/d/${ssId}/export`
+    + `?format=pdf`
+    + `&size=A4`
+    + `&portrait=false`
+    + `&fitw=true`
+    + `&fith=true`
+    + `&top_margin=0.5`
+    + `&bottom_margin=0.5`
+    + `&left_margin=0.5`
+    + `&right_margin=0.5`
+    + `&sheetnames=false`
+    + `&printtitle=false`
+    + `&pagenumbers=false`
+    + `&gridlines=false`
+    + `&gid=${sheetId}`;
 
-Interactive dashboard exploring global population distribution and density using a Kaggle dataset (234 countries, 1970–2022).
+  const token    = ScriptApp.getOAuthToken();
+  const response = UrlFetchApp.fetch(url, {
+    headers: { Authorization: `Bearer ${token}` }
+  });
 
-**Live Dashboard:** [View on Tableau Public](https://public.tableau.com/app/profile/suhaj.ahmad/viz/owndatavisualizationdashboard/WorldPopulationDashboard2022)
+  return response.getBlob().setContentType("application/pdf");
+}
 
-### Visualizations included:
-- **Bar Chart** — Total population by continent (2022)
-- **Scatter Plot** — Population vs population density by country
-- **Choropleth Map** — World population by country (2022)
+// ── EMAIL BODY ────────────────────────────────
+/**
+ * Builds a clean HTML email body
+ */
+function buildEmailBody(dateStr) {
+  return `
+    <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto">
+      <div style="background:#1A2744;padding:20px;border-radius:8px 8px 0 0">
+        <h2 style="color:#fff;margin:0">📊 Weekly HR Leave Report</h2>
+        <p style="color:#93C5FD;margin:4px 0 0">Generated: ${dateStr}</p>
+      </div>
+      <div style="background:#F3F6FC;padding:20px;border-radius:0 0 8px 8px">
+        <p style="color:#1E293B">
+          Please find attached the weekly HR Leave & Attendance Dashboard.
+        </p>
+        <p style="color:#64748B;font-size:12px">
+          This is an automated report. Do not reply to this email.<br>
+          To update the recipient or subject, edit the Settings tab.
+        </p>
+      </div>
+    </div>
+  `;
+}
 
-### Key Insights
-- Asia accounts for ~4.7 billion people, more than all other continents combined
-- China and India together represent the two most populous countries globally
-- High population does not always correlate with high density — small territories like Macau and Monaco show extreme density despite small total populations
+// ── TRIGGERS ──────────────────────────────────
+/**
+ * Installs weekly trigger: every Monday at 8:00 AM
+ */
+function installWeeklyTrigger() {
+  removeTriggers(); // clear existing first
 
-### Screenshots
+  ScriptApp.newTrigger("sendWeeklyReport")
+    .timeBased()
+    .onWeekDay(ScriptApp.WeekDay.MONDAY)
+    .atHour(8)
+    .nearMinute(0)
+    .create();
 
-![Population Bar Chart](screenshots/08_population_bar.png)
-![Population Scatter Plot](screenshots/09_population_scatter.png)
-![World Population Map](screenshots/10_population_map.png)
-![Population Dashboard](screenshots/11_population_dashboard.png)
+  SpreadsheetApp.getActiveSpreadsheet().toast(
+    "✅ Trigger set: Every Monday at 8:00 AM", "Trigger Installed", 5
+  );
+}
 
----
+/**
+ * Removes all sendWeeklyReport triggers
+ */
+function removeTriggers() {
+  ScriptApp.getProjectTriggers()
+    .filter(t => t.getHandlerFunction() === "sendWeeklyReport")
+    .forEach(t => ScriptApp.deleteTrigger(t));
+}
 
-## 🛠️ Tools Used
-- **Tableau Public** — data visualization and dashboard design
-- **Microsoft Excel** — data preparation
-- **Data Sources:**
-  - [World Bank Open Data — CO2 Emissions](https://data.worldbank.org)
-  - [World Population Dataset — Kaggle](https://www.kaggle.com/datasets/iamsouravbanerjee/world-population-dataset)
+// ── BONUS: AUTO REJECT EXPIRED ────────────────
+/**
+ * Finds Pending requests where Start Date has passed
+ * and automatically rejects them with a note
+ */
+function autoRejectExpired() {
+  const ss       = SpreadsheetApp.getActiveSpreadsheet();
+  const depts    = ["Dept_1", "Dept_2", "Dept_3"];
+  const today    = new Date();
+  today.setHours(0, 0, 0, 0);
+  let count      = 0;
 
-## 📌 About
-This project was built as part of a Data Analysis & Visualization assignment, focused on practicing core Tableau skills including bar charts, time series analysis, proportional symbol maps, choropleth maps, box plots, scatter plots, and interactive dashboards with linked filters.
+  depts.forEach(deptName => {
+    const sheet = ss.getSheetByName(deptName);
+    const lastRow = sheet.getLastRow();
+    if (lastRow < 2) return;
+
+    const data = sheet.getRange(2, 1, lastRow - 1, 8).getValues();
+
+    data.forEach((row, i) => {
+      const startDate = new Date(row[2]); // Column C
+      const status    = row[6];           // Column G
+      const actualRow = i + 2;
+
+      if (status === "Pending" && startDate < today) {
+        // Update Status to Rejected
+        sheet.getRange(actualRow, 7).setValue("Rejected");
+        // Add note in column H
+        sheet.getRange(actualRow, 8).setValue(
+          "Auto-rejected: start date passed"
+        );
+        count++;
+      }
+    });
+  });
+
+  SpreadsheetApp.getActiveSpreadsheet().toast(
+    `✅ ${count} expired request(s) auto-rejected.`, "Done", 5
+  );
+}
