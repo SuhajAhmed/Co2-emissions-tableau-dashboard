@@ -1,6 +1,3 @@
-Here's the full content — copy everything below and paste it directly into GitHub's README.md editor:
-
-```markdown
 # CO2 Emissions & World Population — Tableau Dashboards
 
 Data visualization project exploring global CO2 emissions trends (World Bank data, 1960–2011) and world population distribution (Kaggle, 1970–2022) using Tableau Public.
@@ -27,13 +24,13 @@ Interactive dashboard analyzing total and per-capita CO2 emissions by region usi
 
 ### Screenshots
 
-![Bar Chart](screenshots/Screenshot%202026-06-12%20152554.png)
-![Line Chart - Region](screenshots/Screenshot%202026-06-12%20152611.png)
-![Line Chart - Value](screenshots/Screenshot%202026-06-12%20152625.png)
-![Proportional Symbol Map](screenshots/Screenshot%202026-06-12%20152642.png)
-![Choropleth Map](screenshots/Screenshot%202026-06-12%20152705.png)
-![Box Plot](screenshots/Screenshot%202026-06-12%20152720.png)
-![CO2 Dashboard](screenshots/Screenshot%202026-06-12%20152739.png)
+![Bar Chart](screenshots/01_bar_chart.png)
+![Line Chart - Region](screenshots/02_line_region.png)
+![Line Chart - Value](screenshots/03_line_value.png)
+![Proportional Symbol Map](screenshots/04_proportional_map.png)
+![Choropleth Map](screenshots/05_choropleth_map.png)
+![Box Plot](screenshots/06_box_plot.png)
+![CO2 Dashboard](screenshots/07_dashboard.png)
 
 ---
 
@@ -71,6 +68,3 @@ Interactive dashboard exploring global population distribution and density using
 
 ## 📌 About
 This project was built as part of a Data Analysis & Visualization assignment, focused on practicing core Tableau skills including bar charts, time series analysis, proportional symbol maps, choropleth maps, box plots, scatter plots, and interactive dashboards with linked filters.
-```
-
-**Reminder:** Make sure your screenshots are uploaded into a folder named exactly `screenshots` in your repo, with the filenames kept exactly as shown (including spaces) for the images to display correctly.
